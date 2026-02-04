@@ -1,22 +1,38 @@
-import sys
 import os
+import sys
 import pandas as pd
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Pfad-Fix
+script_dir = os.path.dirname(os.path.abspath(__file__))
+base_dir = os.path.dirname(script_dir)
+sys.path.append(base_dir)
+
 from analysis.plots import plot_low_mid_high
 
-# Den neuesten CSV-Pfad hier eintragen
-csv_file = "results/features/ava_features_20260123_105605.csv"
+csv_filename = "ava_features_20260123_105605.csv" # Deine CSV
+csv_path = os.path.join(base_dir, "results", "features", csv_filename)
 
-if os.path.exists(csv_file):
-    df = pd.read_csv(csv_file)
+if __name__ == "__main__":
+    if os.path.exists(csv_path):
+        df = pd.read_csv(csv_path)
+        plot_output_dir = os.path.join(base_dir, "results", "plots")
+        os.makedirs(plot_output_dir, exist_ok=True)
 
-    # Beispiel Plot für Schärfe
-    plt = plot_low_mid_high(df, 'sharpness', title='Schärfe vs. Ästhetik (AVA)')
+        # Liste aller technischen Merkmale
+        features_to_plot = ['brightness', 'contrast', 'colorfulness', 'sharpness', 'noise']
 
-    # Speichern im neuen Ordner
-    os.makedirs("results/analysis", exist_ok=True)
-    plt.savefig("results/analysis/ava_sharpness_3bars.png")
-    plt.show()
-else:
-    print("CSV nicht gefunden!")
+        for feat in features_to_plot:
+            print(f"Erstelle Plot für: {feat}...")
+            save_path = os.path.join(plot_output_dir, f"ava_{feat}_3bars.png")
+
+            # Wir rufen die Funktion aus plots.py auf
+            plot_low_mid_high(
+                df,
+                feat,
+                title=f'Einfluss von {feat.capitalize()} (AVA)',
+                save_path=save_path
+            )
+
+        print(f"\nFertig! Alle Grafiken sind in {plot_output_dir}")
+    else:
+        print(f"FEHLER: Datei nicht gefunden: {csv_path}")
