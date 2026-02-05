@@ -32,7 +32,7 @@ if __name__ == "__main__":
         iter_para_samples(para_root, metadata_files),
         out_csv,
         max_side=1024,
-        limit=100,         #none #200
+        limit=None,         #none #200
         print_every=50,   #5000 #50
         flush_every=500    #500 #50
     )
