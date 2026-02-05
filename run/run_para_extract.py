@@ -16,10 +16,7 @@ if __name__ == "__main__":
     para_root = r"/Users/ibrahim/Desktop/dataset/PARA"
 
     # Pfad zum annotation-Ordner
-    metadata_files = [
-        os.path.join(para_root, "annotation", "PARA-GiaaTrain.csv"),
-        os.path.join(para_root, "annotation", "PARA-GiaaTest.csv")
-    ]
+    metadata_files = [os.path.join(para_root, "annotation", "PARA-Images.csv")]
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     out_csv = os.path.join(base_dir, "results", "features", f"para_features_{timestamp}.csv")
@@ -32,7 +29,7 @@ if __name__ == "__main__":
         iter_para_samples(para_root, metadata_files),
         out_csv,
         max_side=1024,
-        limit=100,         #none #200
+        limit=10,         #none #200
         print_every=50,   #5000 #50
         flush_every=500    #500 #50
     )

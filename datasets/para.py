@@ -10,27 +10,39 @@ def compute_para_mos_manual(row):
     if total_votes <= 0: return None
     return float((scores * votes).sum() / total_votes)
 
+import os
+import pandas as pd
+
 def iter_para_samples(para_root, metadata_csv_list):
-    # Der Ordner heißt laut deiner Info 'imgs'
     img_dir = os.path.join(para_root, "imgs")
 
     for csv_path in metadata_csv_list:
         if not os.path.exists(csv_path):
-            print(f"CSV nicht gefunden: {csv_path}")
             continue
 
         df = pd.read_csv(csv_path)
 
+        # 1. MOS BERECHNEN (wie in Phase 02)
+        # Wenn wir die PARA-Images.csv nutzen, müssen wir gruppieren
+        if 'aestheticScore' in df.columns and 'imageName' in df.columns:
+            print(f"Berechne MOS aus PARA-Images.csv...")
+            df = df.groupby(['imageName', 'sessionId'], sort=False)['aestheticScore'].mean().round(4).reset_index()
+            df = df.rename(columns={'aestheticScore': 'mos'})
+
         for _, row in df.iterrows():
-            image_id = str(row['imageName'])
+            # 2. DATEINAME VS. ID (Der Trick mit dem Unterstrich)
+            original_filename = str(row['imageName']) # Das ist "iaa_pub1_.jpg"
             session = str(row['sessionId'])
 
-            mos = compute_para_mos_manual(row)
-            if mos is None: continue
+            # ID REINIGUNG: Hier machen wir es exakt wie in Phase 02
+            # Entfernt .jpg und den Unterstrich am Ende
+            image_id = original_filename.replace('.jpg', '').rstrip('_')
 
-            # Pfad: .../PARA/imgs/session1/iaa_pub1_.jpg
-            image_path = os.path.join(img_dir, session, image_id)
+            mos = float(row['mos'])
+
+            # Der Pfad zum Öffnen des Bildes braucht den ECHTEN Namen (mit _)
+            image_path = os.path.join(img_dir, session, original_filename)
 
             if os.path.exists(image_path):
+                # Wir geben die saubere image_id zurück für die CSV
                 yield image_id, image_path, mos
-            # else: print(f"Bild fehlt: {image_path}") # Nur zum Testen einkommentieren
