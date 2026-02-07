@@ -12,7 +12,7 @@ from datasets.para import iter_para_samples
 from extraction.extract_features import extract_dataset
 
 if __name__ == "__main__":
-    # DEINE PFADE (jetzt präzise angepasst)
+
     para_root = r"/Users/ibrahim/Desktop/dataset/PARA"
 
     # Pfad zum annotation-Ordner

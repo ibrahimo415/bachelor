@@ -1,7 +1,9 @@
+import gc
 import torch
 from torchmetrics.multimodal import CLIPImageQualityAssessment
 from PIL import Image
 from torchvision.transforms import ToTensor
+
 
 class CLIPScorer:
     def __init__(self):
@@ -14,15 +16,36 @@ class CLIPScorer:
             "beautiful", "lonely", "relaxing"
         )
 
-        self.metric = CLIPImageQualityAssessment(prompts=self.all_prompts).to(self.device)
+        self.metric = CLIPImageQualityAssessment(
+            prompts=self.all_prompts,
+            data_range=255.0
+        ).to(self.device)
+
+        self._n = 0
         print(f"CLIP-IQA bereit auf {self.device} (16 Dimensionen).")
 
     def predict(self, image_path):
         img = Image.open(image_path).convert("RGB")
-        img_tensor = (ToTensor()(img) * 255).to(torch.uint8).unsqueeze(0).to(self.device)
+
+        max_side = 1024
+        if max(img.size) > max_side:
+            img.thumbnail((max_side, max_side), Image.Resampling.LANCZOS)
+
+        img_tensor = (ToTensor()(img) * 255.0).unsqueeze(0).to(self.device)
 
         with torch.no_grad():
             scores = self.metric(img_tensor)
 
-        # Ergebnisse in Dictionary packen und M4-Sicher extrahieren
-        return {f"clip_{p}": float(scores[p].cpu().view(-1)[0].item()) for p in self.all_prompts}
+        results = {
+            f"clip_{p}": float(scores[p].detach().cpu().view(-1)[0].item())
+            for p in self.all_prompts
+        }
+
+        self._n += 1
+        del img_tensor
+
+        if self.device.type == "mps" and (self._n % 100 == 0):
+            torch.mps.empty_cache()
+            gc.collect()
+
+        return results
