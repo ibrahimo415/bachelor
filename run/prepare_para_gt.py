@@ -2,13 +2,25 @@ import pandas as pd
 from pathlib import Path
 import os
 
-# Pfade definieren
-para_root = Path("/Users/ibrahim/Desktop/dataset/PARA")
+# 1. PFADE DEFINIEREN (Automatisch für Win/Mac)
+if os.name == 'nt':  # Windows
+    para_root = Path(r"C:\Users\ibrah\Desktop\dataset\PARA")
+    # Hier nutzen wir base_dir Logik oder einen festen Pfad für Windows:
+    output_dir = Path(r"C:\Users\ibrah\bachelor\results\features")
+else:  # Mac
+    para_root = Path("/Users/ibrahim/Desktop/dataset/PARA")
+    output_dir = Path("/Users/ibrahim/Desktop/phase_01/results/features")
+
+# Diese Variablen müssen aus den Pfaden oben zusammengebaut werden:
 raw_csv = para_root / "annotation" / "PARA-Images.csv"
-output_dir = Path("/Users/ibrahim/Desktop/phase_01/results/features")
 output_path = output_dir / "para_ground_truth.csv"
 
 def prepare_gt():
+    # Sicherheitscheck: Existiert die Quelldatei?
+    if not raw_csv.exists():
+        print(f"❌ FEHLER: Datei nicht gefunden: {raw_csv}")
+        return
+
     print(f"Lade Rohdaten aus {raw_csv}...")
     df = pd.read_csv(raw_csv)
 

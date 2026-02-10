@@ -8,7 +8,11 @@ if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))
     base_dir = os.path.dirname(script_dir)
 
+if os.name == 'nt':  # Windows
+    ava_root = r"C:\Users\ibrah\Desktop\dataset\archive"
+else:  # Mac
     ava_root = r"/Users/ibrahim/Desktop/dataset/archive"
+
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     # Jetzt bauen wir den Pfad IMMER ausgehend vom Hauptordner zusammen
