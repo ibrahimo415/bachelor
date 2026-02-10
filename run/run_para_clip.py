@@ -13,26 +13,33 @@ sys.path.append(str(base_dir))
 from models.iqa_models import CLIPScorer
 
 def main():
-    # 1. PFADE & SETUP
+    # 1. PFADE & SETUP (Flexibel für Win/Mac)
+    # Nutze Pathlib, das erkennt automatisch / oder \
+    if os.name == 'nt':  # 'nt' bedeutet Windows
+        img_root = Path(r"C:\Users\ibrah\Desktop\dataset\PARA\imgs")
+        # Falls deine SSD einen anderen Buchstaben hat, hier anpassen
+    else: # Mac/Linux
+        img_root = Path("/Users/ibrahim/Desktop/dataset/PARA/imgs")
+
     gt_path = base_dir / "results" / "features" / "para_ground_truth.csv"
-    img_root = Path("/Users/ibrahim/Desktop/dataset/PARA/imgs")
 
     if not gt_path.exists():
-        print("Error: Ground Truth Datei nicht gefunden!")
+        print(f"Error: Ground Truth nicht gefunden unter {gt_path}")
         return
 
     df_gt = pd.read_csv(gt_path)
     scorer = CLIPScorer()
 
     # Ausgabedatei vorbereiten
-    out_name = f"para_clip_features_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    timestamp = datetime.now().strftime('%d.%m.%Y_%H-%M')
+    out_name = f"para_clip_features_{timestamp}.csv"
     out_path = base_dir / "results" / "features" / out_name
     os.makedirs(out_path.parent, exist_ok=True)
 
     # 2. PARAMETER (Wie in Phase 01)
     limit = None
-    print_every = 10
-    flush_every = 50
+    print_every = 100
+    flush_every = 500
 
     print(f"Starte CLIP-Extraktion...")
     print(f"Ziel: {out_path}")
