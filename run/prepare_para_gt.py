@@ -2,14 +2,21 @@ import pandas as pd
 from pathlib import Path
 import os
 
-# 1. PFADE DEFINIEREN (Automatisch für Win/Mac)
-if os.name == 'nt':  # Windows
+if os.path.exists("/data/stud/2026-BA-ibrahim_osman/"):
+    # --- SERVER (megagpu) ---
+    para_root = Path("/data/stud/2026-BA-ibrahim_osman/dataset/PARA")
+    output_dir = Path("/data/stud/2026-BA-ibrahim_osman/bachelor/results/features")
+    print("🖥️  Server-Modus: Nutze /data/stud/... Pfade")
+elif os.name == 'nt':
+    # --- WINDOWS ---
     para_root = Path(r"C:\Users\ibrah\Desktop\dataset\PARA")
-    # Hier nutzen wir base_dir Logik oder einen festen Pfad für Windows:
     output_dir = Path(r"C:\Users\ibrah\bachelor\results\features")
-else:  # Mac
+    print("💻 Windows-Modus erkannt")
+else:
+    # --- MAC ---
     para_root = Path("/Users/ibrahim/Desktop/dataset/PARA")
     output_dir = Path("/Users/ibrahim/Desktop/phase_01/results/features")
+    print("🍎 Mac-Modus erkannt")
 
 # Diese Variablen müssen aus den Pfaden oben zusammengebaut werden:
 raw_csv = para_root / "annotation" / "PARA-Images.csv"
