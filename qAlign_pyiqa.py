@@ -5,7 +5,8 @@ from models.qalign_model import QAlignScorer, resize_max_side_lanczos
 def main():
     scorer = QAlignScorer(device="cuda")  # NICHT cuda:3
 
-    image_path = "/data/stud/2026-BA-ibrahim_osman/dataset/PARA/imgs/session1/iaa_pub2_.jpg"
+  # /dataset/archive/images
+    image_path = "/data/stud/2026-BA-ibrahim_osman/dataset/archive/images/953777.jpg"
     if not os.path.exists(image_path):
         print(f"❌ Bild nicht gefunden: {image_path}")
         return

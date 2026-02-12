@@ -1,4 +1,3 @@
-import os
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -7,40 +6,37 @@ def compute_mos_from_votes(votes_1_to_10):
     votes = np.asarray(votes_1_to_10, dtype=np.float32)
     total = votes.sum()
     if total <= 0: return None
-
     scores = np.arange(1, 11, dtype=np.float32)
-    # Hier passiert die Magie: Berechnung + Rundung auf 4 Stellen
     mos_raw = (scores * votes).sum() / total
     return round(float(mos_raw), 4)
 
-# --- PFADE (jetzt mit "archive") ---
-ava_root = Path(r"C:\Users\ibrah\Desktop\dataset\archive")
-ava_txt = ava_root / "AVA_Files" / "AVA.txt"
-output_csv = Path(r"C:\Users\ibrah\bachelor\results\features\ava_ground_truth.csv")
+# --- SERVER PFADE ---
+base_path = Path("/data/stud/2026-BA-ibrahim_osman")
+ava_txt = base_path / "dataset/archive/AVA_Files/AVA.txt"
+output_csv = base_path / "bachelor/results/features/ava_ground_truth.csv"
 
-# Ordner erstellen falls er fehlt
 output_csv.parent.mkdir(parents=True, exist_ok=True)
-
-print("⏳ Erstelle AVA Ground Truth CSV (mit MOS-Rundung)...")
+print(f"⏳ Lese {ava_txt} ein...")
 
 try:
-    # AVA.txt einlesen
+    # AVA.txt hat kein Header und ist mit Leerzeichen getrennt
     df = pd.read_csv(ava_txt, sep=r"\s+", header=None)
     data = []
 
     for _, row in df.iterrows():
+        # In AVA.txt ist Spalte 1 die ID (z.B. 953619)
         img_id = str(int(row[1]))
+        # Spalten 2 bis 11 sind die Votes für Scores 1 bis 10
         votes = row[2:12].values
         mos = compute_mos_from_votes(votes)
 
         if mos is not None:
             data.append({"image_id": img_id, "mos": mos})
 
-    # Speichern
-    pd.DataFrame(data).to_csv(output_csv, index=False)
-    print(f"✅ Erfolg! {len(data)} Bilder erfasst.")
-    print(f"📍 Datei: {output_csv}")
+    final_df = pd.DataFrame(data)
+    final_df.to_csv(output_csv, index=False)
+    print(f"✅ Erfolg! {len(final_df)} Bilder erfasst.")
+    print(f"📍 Gespeichert unter: {output_csv}")
 
-except FileNotFoundError:
-    print(f"❌ Fehler: Die Datei wurde unter {ava_txt} nicht gefunden.")
-    print("Prüfe bitte, ob der Ordner 'archive' wirklich auf dem Desktop liegt.")
+except Exception as e:
+    print(f"❌ Fehler: {e}")
