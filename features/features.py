@@ -1,36 +1,40 @@
 import cv2
 import numpy as np
+from PIL import Image
 from skimage import img_as_float, restoration
 
-def resize_image_smart(img_bgr, max_side=1024):
-    h, w = img_bgr.shape[:2]
+def resize_image_smart(img_pil, max_side=1024):
+    w, h = img_pil.size
     if max(h, w) <= max_side:
-        return img_bgr, False
+        return img_pil, False
     scale = max_side / max(h, w)
     new_w, new_h = int(round(w * scale)), int(round(h * scale))
-    img_resized = cv2.resize(img_bgr, (new_w, new_h), interpolation=cv2.INTER_AREA)
+    img_resized = img_pil.resize((new_w, new_h), Image.Resampling.LANCZOS)
     return img_resized, True
 
 def compute_features(image_path, max_side=1024):
-    img_bgr = cv2.imread(image_path)
-    if img_bgr is None:
+    try:
+        img_rgb_pil = Image.open(image_path).convert("RGB")
+    except Exception:
         return None
 
-    img_bgr, was_resized = resize_image_smart(img_bgr, max_side=max_side)
+    img_rgb_pil, was_resized = resize_image_smart(img_rgb_pil, max_side=max_side)
+    img_rgb = np.asarray(img_rgb_pil, dtype=np.uint8)
 
-    gray_u8 = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+    gray_u8 = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2GRAY)
     gray = gray_u8.astype(np.float32) / 255.0
     brightness = float(np.mean(gray))
     contrast = float(np.std(gray))
 
-    img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
     img_float = img_as_float(img_rgb)
     R, G, B = img_float[:, :, 0], img_float[:, :, 1], img_float[:, :, 2]
-    rg = np.abs(R - G)
-    yb = np.abs(0.5 * (R + G) - B)
-    colorfulness = float(np.std(rg) + np.std(yb) + 0.3 * (np.mean(rg) + np.mean(yb)))
+    rg = R - G
+    yb = 0.5 * (R + G) - B
+    std_root = np.hypot(np.std(rg), np.std(yb))
+    mean_root = np.hypot(np.mean(rg), np.mean(yb))
+    colorfulness = float(std_root + 0.3 * mean_root)
 
-    lap = cv2.Laplacian(gray_u8, cv2.CV_64F)
+    lap = cv2.Laplacian(gray.astype(np.float64), cv2.CV_64F)
     sharpness = float(lap.var())
 
     noise = float(restoration.estimate_sigma(img_float, channel_axis=-1, average_sigmas=True))

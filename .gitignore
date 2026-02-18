@@ -1,14 +1,9 @@
-# IDE & System
+*.jpg
+*.jpeg
+*.png
+**/__pycache__/
 .idea/
-.vscode/
-__pycache__/
-*.pyc
-
-# Daten & Ergebnisse (WICHTIG!)
+*.iml
+.DS_Store
+# Optional: falls deine Ergebnis-CSVs auch lokal liegen
 results/features/*.csv
-dataset/
-*.zip
-*.tar.gz
-
-# Virtuelle Umgebung
-.venv/

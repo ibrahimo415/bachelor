@@ -7,16 +7,23 @@ def extract_dataset(samples, out_csv, max_side=1024, limit=None, print_every=500
 
     # --- Resume: IDs, die schon in der CSV sind, überspringen
     done_ids = set()
+    current_custom_id = 1
+    write_header = True
+
     if os.path.exists(out_csv):
         try:
             prev = pd.read_csv(out_csv, usecols=["image_id"])
             done_ids = set(prev["image_id"].astype(str).tolist())
             print(f"[RESUME] Found existing file with {len(done_ids)} rows. Skipping those IDs.")
+            current_custom_id = len(done_ids) + 1
+            write_header = len(done_ids) == 0
         except Exception:
-            print("[RESUME] Existing file exists but could not read 'image_id'. Will overwrite.")
+            print("[RESUME] Existing file exists but could not read 'image_id'. Overwriting file.")
+            # Datei bewusst leeren, damit kein fehlerhaftes Anhängen passiert
+            open(out_csv, "w").close()
             done_ids = set()
-    current_custom_id = len(done_ids) + 1
-    write_header = not os.path.exists(out_csv) or len(done_ids) == 0
+            current_custom_id = 1
+            write_header = True
 
     rows_buffer = []
     missing = 0
