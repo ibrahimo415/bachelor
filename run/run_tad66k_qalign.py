@@ -4,16 +4,18 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+from PIL import Image
+
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 script_path = Path(__file__).resolve()
 base_dir = script_path.parent.parent
 if str(base_dir) not in sys.path:
     sys.path.insert(0, str(base_dir))
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-
 from datasets import iter_tad66k_samples
-from models.iqa_models import CLIPScorer
+from models.qalign_model import QAlignScorer, resize_max_side_lanczos
 
 
 def _get_tad_root() -> Path:
@@ -29,7 +31,7 @@ def _get_labels_csv() -> Path:
         base_dir / "mos_tad66k" / "merge" / "all.csv",
         Path("/data/stud/2026-BA-ibrahim_osman/dataset/TAD66K/labels/merge/all.csv"),
         Path("/data/stud/2026-BA-ibrahim_osman/dataset/labels/merge/all.csv"),
-    ]
+        ]
     for p in candidates:
         if p.exists():
             return p
@@ -46,31 +48,33 @@ def main(limit=None, print_every=500, flush_every=500):
     labels_csv = _get_labels_csv()
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_path = base_dir / "results" / "features" / f"tad66k_clip_features_{timestamp}.csv"
+    out_path = base_dir / "results" / "features" / f"tad66k_qalign_features_{timestamp}.csv"
     os.makedirs(out_path.parent, exist_ok=True)
 
-    scorer = CLIPScorer()
+    scorer = QAlignScorer(device="cuda")
 
-    print("--- TAD66K CLIP-IQA Konfiguration ---")
+    print("--- TAD66K QAlign Konfiguration ---")
     print(f"Bilder: {tad_root}")
     print(f"Labels: {labels_csv}")
     print(f"Output: {out_path}")
-    print("-------------------------------------")
+    print("-----------------------------------")
 
     with open(out_path, mode="w", newline="") as f:
         writer = None
 
         for i, (img_id, img_path, mos) in enumerate(
-            iter_tad66k_samples(tad_root=str(tad_root), metadata_csv_list=[str(labels_csv)])
+                iter_tad66k_samples(tad_root=str(tad_root), metadata_csv_list=[str(labels_csv)])
         ):
             if limit and i >= limit:
                 break
 
             try:
-                scores_dict = scorer.predict(str(img_path))
+                img_pil = Image.open(img_path).convert("RGB")
+                img_rsz, _ = resize_max_side_lanczos(img_pil, 1024)
+                scores = scorer.predict_from_pil(img_rsz)
 
                 entry = {"image_id": img_id, "mos": float(mos)}
-                entry.update(scores_dict)
+                entry.update(scores)
 
                 if writer is None:
                     writer = csv.DictWriter(f, fieldnames=entry.keys())
