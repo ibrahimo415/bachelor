@@ -15,7 +15,7 @@ from extraction.extract_features import extract_dataset
 
 def _get_tad_root() -> Path:
     if os.path.exists("/data/stud/2026-BA-ibrahim_osman/"):
-        return Path("/data/stud/2026-BA-ibrahim_osman/dataset/TAD66K/images")
+        return Path("/data/stud/2026-BA-ibrahim_osman/dataset/TAD66K")
     if os.name == "nt":
         return Path(r"C:\Users\ibrah\Desktop\dataset\TAD66K")
     return Path("/Users/ibrahim/Desktop/dataset/TAD66K")
