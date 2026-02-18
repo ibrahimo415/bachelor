@@ -1,0 +1,14 @@
+# IDE & System
+.idea/
+.vscode/
+__pycache__/
+*.pyc
+
+# Daten & Ergebnisse (WICHTIG!)
+results/features/*.csv
+dataset/
+*.zip
+*.tar.gz
+
+# Virtuelle Umgebung
+.venv/
