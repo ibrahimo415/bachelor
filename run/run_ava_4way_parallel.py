@@ -23,7 +23,6 @@ class AVADataset(Dataset):
 
     def __getitem__(self, idx):
         row = self.df.iloc[idx]
-        # Wir nutzen 'image_id' (wie per Terminal-Check bestätigt)
         img_id = str(int(row['image_id']))
         img_name = img_id + ".jpg"
         img_path = self.img_root / img_name
@@ -39,7 +38,6 @@ def main():
     gt_path = project_root / "results" / "features" / "ava_ground_truth.csv"
     out_path = project_root / "results" / "features" / f"ava_CLIP_PART_{mode}.csv"
 
-    # 1. VOLL-LAUF: Kein .head() mehr!
     df_full = pd.read_csv(gt_path)
 
     # Aufteilung in 3 Teile
@@ -57,7 +55,7 @@ def main():
     loader = DataLoader(dataset, batch_size=1, num_workers=0, collate_fn=collate_single)
 
     results = []
-    print(f"🚀 AVA VOLL-LAUF {mode} gestartet ({len(df_run)} Bilder)...")
+    print(f"AVA Lauf {mode} gestartet ({len(df_run)} Bilder)...")
 
     with torch.no_grad():
         for item in tqdm(loader, desc=f"AVA {mode}"):
@@ -71,7 +69,6 @@ def main():
                 entry.update(scores)
                 results.append(entry)
 
-                # 2. EFFIZIENZ: Alle 500 Bilder auf Festplatte schreiben
                 if len(results) >= 500:
                     pd.DataFrame(results).to_csv(out_path, mode='a', index=False, header=not out_path.exists())
                     results = []
@@ -80,7 +77,7 @@ def main():
 
     if results:
         pd.DataFrame(results).to_csv(out_path, mode='a', index=False, header=not out_path.exists())
-    print(f"✅ Teil {mode} komplett fertig!")
+    print(f"Teil {mode} fertig.")
 
 if __name__ == "__main__":
     main()

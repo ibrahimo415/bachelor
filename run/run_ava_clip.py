@@ -15,24 +15,20 @@ from models.iqa_models import CLIPScorer
 from datasets.ava import iter_ava_ids
 
 def main():
-    # AUTOMATISCHE PFAD-WEICHE
-    if os.name == 'nt':  # Windows
-        ava_root = Path(r"C:\Users\ibrah\Desktop\dataset\archive") # HIER Windows-Pfad prüfen
-    else:                # Mac
+    if os.name == 'nt':
+        ava_root = Path(r"C:\Users\ibrah\Desktop\dataset\archive")
+    else:
         ava_root = Path("/Users/ibrahim/Desktop/dataset/archive")
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    # Der Rest nutzt "base_dir", das funktioniert auf beiden Systemen automatisch!
     out_path = base_dir / "results" / "features" / f"ava_features_only_{timestamp}.csv"
     os.makedirs(out_path.parent, exist_ok=True)
 
     scorer = CLIPScorer()
 
-    # --- HIER SIND DIE KONTROLL-VARIABLEN ---
-    limit = None       # None für den echten Lauf
-    print_every = 1000    # Info im Terminal nach jedem X-ten Bild
-    flush_every = 2000 #100  # Sicherheits-Speicherung nach jedem X-ten Bild
-    # ----------------------------------------
+    limit = None
+    print_every = 1000
+    flush_every = 2000
 
     print(f"Starte saubere Feature-Extraktion...")
 
@@ -55,7 +51,6 @@ def main():
 
                 writer.writerow(entry)
 
-                # JETZT MIT VARIABLE:
                 if (i + 1) % flush_every == 0:
                     f.flush()
 
@@ -65,7 +60,7 @@ def main():
             except Exception as e:
                 print(f" Fehler bei {img_id}: {e}")
 
-    print(f"\n ERFOLG! Datei erstellt: {out_path}")
+    print(f"\nFertig. Datei erstellt: {out_path}")
 
 if __name__ == "__main__":
     main()

@@ -7,17 +7,15 @@ from tqdm import tqdm
 from pathlib import Path
 from PIL import Image
 
-# ✅ FIX 1: Tokenizer-Warnung unterdrücken (GANZ OBEN)
+# Tokenizer-Warnung unterdrücken
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-# Pfad-Setup
 script_path = Path(__file__).resolve()
 project_root = script_path.parent.parent
 sys.path.append(str(project_root))
 
 BASE_STORAGE = "/data/stud/2026-BA-ibrahim_osman"
 
-# Cache-Umleitung
 os.environ["HF_HOME"] = os.path.join(BASE_STORAGE, "huggingface_cache")
 os.environ["TORCH_HOME"] = os.path.join(BASE_STORAGE, "torch_cache")
 
@@ -63,15 +61,13 @@ def main():
     else: df_run = df_full.iloc[2*n//3:]
 
     dataset = AVADataset(df_run, img_root)
-    # ✅ FIX 2: num_workers=0 ist oft schneller auf GPU-Servern
     loader = DataLoader(dataset, batch_size=1, num_workers=0, collate_fn=collate_fn)
 
-    # Scorer NACH DataLoader laden (beste Practice)
-    print(f"📡 Lade Scorer...")
+    print("Lade Scorer...")
     scorer = QAlignScorer(device="cuda")
 
     results = []
-    print(f"🚀 Start AVA {mode} | {len(df_run)} Bilder")
+    print(f"Start AVA {mode} | {len(df_run)} Bilder")
 
     for item in tqdm(loader, desc=f"AVA {mode}"):
         if item is None: continue
@@ -89,7 +85,7 @@ def main():
     if results:
         pd.DataFrame(results).to_csv(out_path, mode='a', index=False, header=not out_path.exists())
 
-    print(f"✅ Fertig: {out_path}")
+    print(f"Fertig: {out_path}")
 
 if __name__ == "__main__":
     main()

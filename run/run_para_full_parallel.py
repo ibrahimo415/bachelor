@@ -6,28 +6,22 @@ from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 from pathlib import Path
 
-# =========================================================
-# 1. PFAD-AUTOMATIK & SETUP
-# =========================================================
 script_path = Path(__file__).resolve()
 project_root = script_path.parent.parent
 sys.path.append(str(project_root))
 
 def get_config():
-    """Erkennt automatisch, ob wir auf dem Server oder lokal sind."""
     if os.path.exists("/data/stud/2026-BA-ibrahim_osman/"):
-        # --- SERVER KONFIGURATION ---
         return {
             "img_root": Path("/data/stud/2026-BA-ibrahim_osman/dataset/PARA/imgs"),
             "gt_path": project_root / "results" / "features" / "para_ground_truth.csv",
             "out_dir": project_root / "results" / "features",
-            "num_workers": 32,      # Erhöht auf 32 für maximale Parallelisierung
-            "prefetch_factor": 4,   # Lädt 4 Bilder pro Worker im Voraus
+            "num_workers": 32,
+            "prefetch_factor": 4,
             "pin_memory": True,
             "device": "cuda"
         }
     else:
-        # --- LOKALE KONFIGURATION ---
         return {
             "img_root": Path(r"C:\Users\ibrah\Desktop\dataset\PARA\imgs"),
             "gt_path": project_root / "results" / "features" / "para_ground_truth.csv",
@@ -40,9 +34,6 @@ def get_config():
 
 from models.iqa_models import CLIPScorer
 
-# =========================================================
-# 2. DATASET KLASSE
-# =========================================================
 class PARADataset(Dataset):
     def __init__(self, df, img_root):
         self.df = df
@@ -59,9 +50,6 @@ class PARADataset(Dataset):
 def collate_single(batch):
     return batch[0]
 
-# =========================================================
-# 3. MAIN PROZESS
-# =========================================================
 def main():
     config = get_config()
     mode = sys.argv[1].upper() if len(sys.argv) > 1 else "FULL"
@@ -70,12 +58,11 @@ def main():
     out_path = config["out_dir"] / f"para_FULL_POWER_{mode}.csv"
 
     if not config["gt_path"].exists():
-        print(f"❌ Fehler: CSV nicht gefunden unter {config['gt_path']}")
+        print(f"Fehler: CSV nicht gefunden unter {config['gt_path']}")
         return
 
     df_full = pd.read_csv(config["gt_path"])
 
-    # Split Logik
     mid = len(df_full) // 2
     if mode == "A":
         df_run = df_full.iloc[:mid]
@@ -84,12 +71,11 @@ def main():
     else:
         df_run = df_full
 
-    print(f"📡 Initialisiere CLIPScorer auf {config['device']}...")
+    print(f"Initialisiere CLIPScorer auf {config['device']}...")
     scorer = CLIPScorer()
 
     dataset = PARADataset(df_run, config["img_root"])
 
-    # DataLoader mit Prefetching
     loader = DataLoader(
         dataset,
         batch_size=1,
@@ -100,8 +86,8 @@ def main():
     )
 
     results = []
-    print(f"🚀 Start: Mode {mode} | {len(df_run)} Bilder | Device: {config['device']}")
-    print(f"🛠️  Parallelisierung: {config['num_workers']} Worker | Prefetch: {config['prefetch_factor']}")
+    print(f"Start: Mode {mode} | {len(df_run)} Bilder | Device: {config['device']}")
+    print(f"Worker: {config['num_workers']} | Prefetch: {config['prefetch_factor']}")
 
     with torch.no_grad():
         for i, item in enumerate(tqdm(loader, desc=f"PARA {mode}")):
@@ -122,13 +108,13 @@ def main():
                     results = []
 
             except Exception as e:
-                print(f"\n⚠️ Fehler bei Bild {img_id}: {e}")
+                print(f"\nFehler bei Bild {img_id}: {e}")
 
     if results:
         save_header = not out_path.exists()
         pd.DataFrame(results).to_csv(out_path, mode='a', index=False, header=save_header)
 
-    print(f"\n✅ Fertig! Ergebnisse unter: {out_path}")
+    print(f"\nFertig. Ergebnisse unter: {out_path}")
 
 if __name__ == "__main__":
     main()

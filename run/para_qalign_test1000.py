@@ -63,7 +63,7 @@ def main():
     df_run = df_1000.iloc[:500] if mode == "A" else df_1000.iloc[500:1000]
     df_run = df_run.reset_index(drop=True)
 
-    print(f"📡 Lade Q-Align für Teil {mode} ({len(df_run)} Bilder)...")
+    print(f"Lade Q-Align fuer Teil {mode} ({len(df_run)} Bilder)...")
     scorer = QAlignScorer(device=cfg["device"])
 
     dataset = PARADataset(df_run, cfg["img_root"])
@@ -112,9 +112,9 @@ def main():
 
     dt = time.time() - t0
     if processed > 0:
-        print(f"✅ Teil {mode} fertig! {processed} Bilder in {dt:.1f}s ({processed/dt:.2f} img/s)")
+        print(f"Teil {mode} fertig! {processed} Bilder in {dt:.1f}s ({processed/dt:.2f} img/s)")
     else:
-        print("⚠️ Keine Bilder verarbeitet.")
+        print("Keine Bilder verarbeitet.")
 
 if __name__ == "__main__":
     main()

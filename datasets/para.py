@@ -70,6 +70,7 @@ def _iter_para_rows(df: pd.DataFrame):
 
 def iter_para_samples(para_root, metadata_csv_list):
     img_dir = Path(para_root) / "imgs"
+    seen = set()
 
     for csv_path in metadata_csv_list:
         if not os.path.exists(csv_path):
@@ -78,6 +79,9 @@ def iter_para_samples(para_root, metadata_csv_list):
         df = pd.read_csv(csv_path)
 
         for image_id, session, original_name, mos in _iter_para_rows(df):
+            if image_id in seen:
+                continue
             image_path = img_dir / session / original_name
             if image_path.exists():
+                seen.add(image_id)
                 yield image_id, str(image_path), float(mos)

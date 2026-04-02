@@ -26,21 +26,19 @@ def get_config():
 def main():
     cfg = get_config()
 
-    print("📡 Initialisiere MUSIQ-AVA Scorer...")
+    print("Initialisiere MUSIQ-AVA Scorer...")
     scorer = MUSIQScorer(model_type="musiq-ava", device=cfg["device"])
 
     if not cfg["gt_path"].exists():
-        print(f"❌ Fehler: Ground Truth nicht gefunden: {cfg['gt_path']}")
+        print(f"Fehler: Ground Truth nicht gefunden: {cfg['gt_path']}")
         return
 
-    # Wir laden die para_ground_truth.csv (die du auch für Q-Align genutzt hast)
     df_run = pd.read_csv(cfg["gt_path"])
 
     results = []
-    print(f"🚀 Start PARA MUSIQ (Session-Logik) | {len(df_run)} Bilder")
+    print(f"Start PARA MUSIQ | {len(df_run)} Bilder")
 
     for _, row in tqdm(df_run.iterrows(), total=len(df_run), desc="PARA Processing"):
-        # EXAKT DEINE PFAD-LOGIK: session_id / original_name
         img_path = cfg["img_root"] / str(row["session_id"]) / str(row["original_name"])
 
         if not img_path.exists():
@@ -50,15 +48,11 @@ def main():
             img_pil = Image.open(img_path).convert("RGB")
             img_rsz, _ = resize_max_side_lanczos(img_pil, 1024)
 
-            # Prediction
             scores = scorer.predict_from_pil(img_rsz)
-
-            # Wir speichern image_id und mos wie in deinem Q-Align Skript
             entry = {"image_id": row["image_id"], "mos": float(row["mos"])}
             entry.update(scores)
             results.append(entry)
 
-            # Alle 500 Bilder speichern
             if len(results) >= 500:
                 pd.DataFrame(results).to_csv(cfg["out_path"], mode='a', index=False, header=not cfg["out_path"].exists())
                 results = []
@@ -68,7 +62,7 @@ def main():
     if results:
         pd.DataFrame(results).to_csv(cfg["out_path"], mode='a', index=False, header=not cfg["out_path"].exists())
 
-    print(f"\n✅ PARA abgeschlossen! Datei: {cfg['out_path']}")
+    print(f"\nPARA abgeschlossen. Datei: {cfg['out_path']}")
 
 if __name__ == "__main__":
     main()

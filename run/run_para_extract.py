@@ -2,11 +2,9 @@ import os
 import sys
 from datetime import datetime
 
-# 1. PFAD-FIX (Ganz oben): Projekt-Hauptverzeichnis priorisieren
 script_dir = os.path.dirname(os.path.abspath(__file__))
 base_dir = os.path.dirname(script_dir)
 if base_dir not in sys.path:
-    # insert(0, ...) ist sicherer als append(), damit DEIN Code Vorrang hat
     sys.path.insert(0, base_dir)
 
 try:
@@ -18,7 +16,6 @@ except ModuleNotFoundError as e:
     sys.exit(1)
 
 if __name__ == "__main__":
-    # 2. ROUTE/PFAD-ANPASSUNG: Automatische Erkennung
     server_path = "/data/stud/2026-BA-ibrahim_osman/dataset/PARA"
     mac_path = "/Users/ibrahim/Desktop/dataset/PARA"
 
@@ -27,7 +24,6 @@ if __name__ == "__main__":
     else:
         para_root = mac_path
 
-    # Pfad zum annotation-Ordner (relativ zum gefundenen root)
     metadata_files = [
         os.path.join(para_root, "annotation", "PARA-GiaaTrain.csv"),
         os.path.join(para_root, "annotation", "PARA-GiaaTest.csv")

@@ -7,9 +7,6 @@ from tqdm import tqdm
 from pathlib import Path
 from PIL import Image
 
-# =========================================================
-# 1. PFAD-SETUP & CACHE-UMLEITUNG
-# =========================================================
 script_path = Path(__file__).resolve()
 project_root = script_path.parent.parent
 sys.path.append(str(project_root))
@@ -33,9 +30,6 @@ def get_config():
         "device": "cuda"
     }
 
-# =========================================================
-# 2. DATASET KLASSE (AVA-Spezifisch)
-# =========================================================
 class AVADataset(Dataset):
     def __init__(self, df, img_root):
         self.df = df
@@ -46,7 +40,6 @@ class AVADataset(Dataset):
 
     def __getitem__(self, idx):
         row = self.df.iloc[idx]
-        # AVA IDs sind in der CSV als Int gespeichert -> ID.jpg
         img_path = self.img_root / f"{int(row['image_id'])}.jpg"
 
         try:
@@ -60,9 +53,6 @@ def collate_fn(batch):
     batch = list(filter(lambda x: x is not None, batch))
     return batch[0] if batch else None
 
-# =========================================================
-# 3. MAIN RUN
-# =========================================================
 def main():
     config = get_config()
     # Modi: A, B, C, D
@@ -72,7 +62,7 @@ def main():
     out_path = config["out_dir"] / f"ava_QALIGN_SCORES_{mode}.csv"
 
     if not config["gt_path"].exists():
-        print(f"❌ Fehler: Ground Truth CSV nicht gefunden: {config['gt_path']}")
+        print(f"Fehler: Ground Truth CSV nicht gefunden: {config['gt_path']}")
         return
 
     df_full = pd.read_csv(config["gt_path"])
@@ -85,7 +75,7 @@ def main():
     elif mode == "D": df_run = df_full.iloc[3*n//4:]
     else: df_run = df_full # Fallback auf alles
 
-    print(f"📡 Lade Q-Align Scorer auf {config['device']}...")
+    print(f"Lade Q-Align Scorer auf {config['device']}...")
     scorer = QAlignScorer(device=config['device'])
 
     dataset = AVADataset(df_run, config["img_root"])
@@ -96,7 +86,7 @@ def main():
     )
 
     results = []
-    print(f"🚀 Start AVA Q-Align | Mode {mode} | {len(df_run)} Bilder")
+    print(f"Start AVA Q-Align | Mode {mode} | {len(df_run)} Bilder")
 
     with torch.no_grad():
         for item in tqdm(loader, desc=f"AVA {mode}"):
@@ -116,13 +106,13 @@ def main():
                     results = []
 
             except Exception as e:
-                print(f"\n⚠️ Fehler bei ID {img_id}: {e}")
+                print(f"\nFehler bei ID {img_id}: {e}")
 
     if results:
         save_header = not out_path.exists()
         pd.DataFrame(results).to_csv(out_path, mode='a', index=False, header=save_header)
 
-    print(f"\n✅ Fertig! Split {mode} gespeichert unter: {out_path}")
+    print(f"\nFertig! Split {mode} gespeichert unter: {out_path}")
 
 if __name__ == "__main__":
     main()

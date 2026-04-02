@@ -3,7 +3,6 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-# Sicherstellen, dass das Projekt-Hauptverzeichnis im Python-Pfad ist
 script_dir = os.path.dirname(os.path.abspath(__file__))
 base_dir = os.path.dirname(script_dir)
 if base_dir not in sys.path:
@@ -13,26 +12,21 @@ from datasets.ava import iter_samples
 from extraction.extract_features import extract_dataset
 
 def get_ava_root():
-    """Erkennt automatisch die Umgebung und gibt den richtigen Pfad zurück."""
-    # Pfad auf dem Uni-Server (megagpu)
     server_path = "/data/stud/2026-BA-ibrahim_osman/dataset/archive"
 
     if os.path.exists(server_path):
         return server_path
 
-    # Pfade für lokale Entwicklung
-    if os.name == "nt":  # Windows
+    if os.name == "nt":
         return r"C:\Users\ibrah\Desktop\dataset\archive"
-    else:  # Mac
+    else:
         return "/Users/ibrahim/Desktop/dataset/archive"
 
 def main():
     ava_root = get_ava_root()
 
-    # Zeitstempel für eindeutige Dateinamen
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    # Ordner für Ergebnisse sicherstellen
     results_dir = os.path.join(base_dir, "results", "features")
     os.makedirs(results_dir, exist_ok=True)
 

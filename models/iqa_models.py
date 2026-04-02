@@ -6,7 +6,6 @@ from torchvision.transforms import ToTensor
 
 class CLIPScorer:
     def __init__(self):
-        # AUTOMATISCHE ERKENNUNG: CUDA (Win) > MPS (Mac) > CPU
         if torch.cuda.is_available():
             self.device = torch.device("cuda")
         elif torch.backends.mps.is_available():
@@ -48,7 +47,6 @@ class CLIPScorer:
         self._n += 1
         del img_tensor
 
-        # CLEANUP: Erkennt automatisch, welche GPU geleert werden muss
         if self._n % 100 == 0:
             if self.device.type == "mps":
                 torch.mps.empty_cache()

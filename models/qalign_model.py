@@ -1,9 +1,6 @@
 import os
 
-# =========================================================
-# 0) CACHE-UMLEITUNG (MUSS GANZ OBEN STEHEN!)
-#    -> muss VOR torch/pyiqa/transformers imports ausgeführt werden
-# =========================================================
+# Cache-Pfade muessen vor torch/pyiqa/transformers gesetzt werden
 BASE = "/data/stud/2026-BA-ibrahim_osman"
 
 os.environ["HF_HOME"] = os.path.join(BASE, "huggingface_cache")
@@ -24,9 +21,6 @@ for p in [
 ]:
     os.makedirs(p, exist_ok=True)
 
-# =========================================================
-# 1) ERST JETZT IMPORTS
-# =========================================================
 import torch
 import pyiqa
 from PIL import Image
@@ -43,26 +37,18 @@ def resize_max_side_lanczos(img: Image.Image, max_side: int = 1024):
 
 
 class QAlignScorer:
-    """
-    Q-Align scorer via pyiqa.
-
-    Wichtig:
-    - Wenn du CUDA_VISIBLE_DEVICES=3 setzt, ist die "sichtbare" GPU intern cuda:0.
-    - Tensor-Input MUSS in [0,1] sein (pyiqa validiert das).
-    """
+    """Q-Align scorer via pyiqa. Tensor-Input in [0,1]."""
     def __init__(self, device: str = "cuda"):
         if torch.cuda.is_available():
-            # "cuda" nutzt die 1 sichtbare GPU (nach CUDA_VISIBLE_DEVICES)
             self.device = torch.device(device)
         else:
             self.device = torch.device("cpu")
 
-        print(f"🚀 Initialisiere Q-Align auf {self.device}...")
+        print(f"Initialisiere Q-Align auf {self.device}...")
         self.model = pyiqa.create_metric("qalign", device=self.device)
         self.to_tensor = ToTensor()
 
     def predict_from_pil(self, img_pil: Image.Image):
-        # pyiqa erwartet [0,1] bei Tensor-Input -> KEIN *255
         img_tensor = self.to_tensor(img_pil).unsqueeze(0).to(self.device)
         with torch.no_grad():
             aes = self.model(img_tensor, task_="aesthetic").item()
